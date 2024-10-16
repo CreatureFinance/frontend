@@ -1,3 +1,14 @@
 {
-  "cSpell.words": ["Cardano", "lucide", "meshsdk"]
+  "cSpell.words": [
+    "Cardano",
+    "horz",
+    "Immer",
+    "lucide",
+    "meshsdk",
+    "Misans",
+    "Sonner",
+    "tailwindcss",
+    "zustand"
+  ],
+  "i18n-ally.localesPaths": ["public/locales"]
 }

@@ -1,0 +1,55 @@
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/font/Geist-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/font/Geist-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/font/Geist-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/font/Geist-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoSans";
+  src: url("../assets/font/NotoSansTC-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoSans";
+  src: url("../assets/font/NotoSansTC-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoSans";
+  src: url("../assets/font/NotoSansTC-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoSans";
+  src: url("../assets/font/NotoSansTC-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
