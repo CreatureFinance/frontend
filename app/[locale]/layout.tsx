@@ -4,13 +4,14 @@ import {
   getTranslations,
   setRequestLocale,
 } from "next-intl/server";
-import { ReactNode, Suspense } from "react";
+import { ReactNode } from "react";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/share/navbar";
 import { ZustandProvider } from "@/providers/store-provider";
+import Loading from "@/components/share/loading";
 
 type Props = {
   children: ReactNode;
@@ -19,7 +20,15 @@ type Props = {
 
 const MeshProvider = dynamic(
   () => import("@/providers/mesh-provider").then((mod) => mod.default),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => (
+      <Loading
+        isLoading={true}
+        className="fixed inset-0 grid place-content-center bg-background/50 backdrop-blur-sm"
+      />
+    ),
+  },
 );
 
 export function generateStaticParams() {
@@ -50,25 +59,25 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="h-full">
       <body className="flex min-h-screen flex-col">
-        <NextIntlClientProvider messages={messages}>
-          <ZustandProvider>
-            <MeshProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="dark"
-                forcedTheme="dark"
-                enableSystem={false}
-                disableTransitionOnChange
-              >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          forcedTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <MeshProvider>
+            <NextIntlClientProvider messages={messages}>
+              <ZustandProvider>
                 <div className="flex flex-grow flex-col pt-20">
                   <Navbar />
                   <main className="flex-grow">{children}</main>
                 </div>
                 <Toaster richColors closeButton />
-              </ThemeProvider>
-            </MeshProvider>
-          </ZustandProvider>
-        </NextIntlClientProvider>
+              </ZustandProvider>
+            </NextIntlClientProvider>
+          </MeshProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

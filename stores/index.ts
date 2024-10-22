@@ -1,13 +1,14 @@
 import { createStore, StateCreator } from "zustand/vanilla";
 import { immer } from "zustand/middleware/immer";
 import { devtools } from "zustand/middleware";
-import { createWalletStore, WalletStore } from "./WalletStore";
+import { createWalletStore, WalletStore } from "./wallet-store";
+import { createLocaleStore, LocaleStore } from "./locale-store";
 
 type RootState = {};
 
 type RootActions = {};
 
-export type RootStore = RootState & RootActions & WalletStore;
+export type RootStore = RootState & RootActions & WalletStore & LocaleStore;
 
 export const defaultInitState: RootState = {};
 
@@ -18,6 +19,7 @@ export const createRootStore = (initState: RootState = defaultInitState) => {
       immer((...args) => ({
         ...initState,
         ...createWalletStore(...args),
+        ...createLocaleStore(...args),
       })),
       {
         name: "root_store",

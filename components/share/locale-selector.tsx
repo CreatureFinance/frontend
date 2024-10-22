@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useTransition } from "react";
 import {
   Select,
   SelectContent,
@@ -29,7 +29,9 @@ const LocaleSelector = () => {
       </SelectTrigger>
       <SelectContent>
         {supportedLangs.map((item) => (
-          <SelectItem value={item}>{t(item)}</SelectItem>
+          <SelectItem key={item} value={item}>
+            {t(item)}
+          </SelectItem>
         ))}
       </SelectContent>
     </Select>

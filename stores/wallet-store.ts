@@ -1,4 +1,4 @@
-import { ImmerStateCreator } from "../index";
+import { ImmerStateCreator } from "./index";
 
 type WalletState = {
   walletName: string;
