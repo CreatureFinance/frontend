@@ -1,13 +1,13 @@
-import createNextIntlPlugin from 'next-intl/plugin';
+import createNextIntlPlugin from "next-intl/plugin";
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: [
-    '@meshsdk/core',
-    '@meshsdk/core-cst',
-    '@meshsdk/react',
+    "@meshsdk/core",
+    "@meshsdk/core-cst",
+    "@meshsdk/react",
   ],
   experimental: {
     after: true,

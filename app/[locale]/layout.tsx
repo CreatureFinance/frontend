@@ -53,19 +53,19 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <ZustandProvider>
             <MeshProvider>
-              <ThemeProvider
+              {/* <ThemeProvider
                 attribute="class"
                 defaultTheme="dark"
                 forcedTheme="dark"
                 enableSystem={false}
                 disableTransitionOnChange
-              >
-                <div className="flex flex-grow flex-col pt-20">
-                  <Navbar />
-                  <main className="flex-grow">{children}</main>
-                </div>
-                <Toaster richColors closeButton />
-              </ThemeProvider>
+              > */}
+              <div className="flex flex-grow flex-col pt-20">
+                <Navbar />
+                <main className="flex-grow">{children}</main>
+              </div>
+              <Toaster richColors closeButton />
+              {/* </ThemeProvider> */}
             </MeshProvider>
           </ZustandProvider>
         </NextIntlClientProvider>
