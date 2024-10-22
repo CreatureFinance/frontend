@@ -1,32 +1,25 @@
 "use client";
 
-import React, { ChangeEvent, useTransition } from "react";
+import React from "react";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Locale, supportedLangs } from "@/i18n/config";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/routing";
 
 const LocaleSelector = () => {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const locale = useLocale();
   const pathname = usePathname();
   const t = useTranslations("Settings");
 
   const onSelectChange = (nextLocale: Locale) => {
-    startTransition(() => {
-      // 將當前路徑中的語言代碼替換為新的語言代碼
-      const newPathname = pathname.replace(/^\/[^\/]+/, `/${nextLocale}`);
-      router.replace(newPathname, { scroll: false });
-    });
+    router.replace(pathname, { locale: nextLocale });
   };
 
   return (

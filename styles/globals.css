@@ -1,4 +1,4 @@
-@import './_font.css';
+@import "./_font.css";
 
 @tailwind base;
 @tailwind components;
@@ -82,6 +82,6 @@
   body {
     @apply bg-background text-foreground;
 
-    font-family: 'Geist', 'NotoSans', sans-serif;
+    font-family: "Geist", "NotoSans", sans-serif;
   }
 }
