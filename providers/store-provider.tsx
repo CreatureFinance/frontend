@@ -5,7 +5,9 @@ import { type StoreApi, useStore as useZustandStore } from "zustand";
 
 import { type RootStore, createRootStore } from "@/stores";
 
-export const RootStoreContext = createContext<StoreApi<RootStore> | null>(null);
+export const RootStoreContext = createContext<StoreApi<RootStore> | undefined>(
+  undefined,
+);
 
 export interface RootStoreProviderProps {
   children: ReactNode;
