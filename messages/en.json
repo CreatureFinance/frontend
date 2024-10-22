@@ -1,0 +1,19 @@
+{
+  "LocaleLayout": {
+    "title": "English Title"
+  },
+  "Wallet": {
+    "title": "Wallet",
+    "connect": "Connect Wallet"
+  },
+  "Home": {
+    "title": "Hello world!"
+  },
+  "Settings": {
+    "title": "Settings",
+    "language": "Language",
+
+    "zh-tw": "Chinese (Traditional)",
+    "en": "English"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "LocaleLayout": {
+    "title": "繁體標題"
+  },
+  "Wallet": {
+    "title": "錢包",
+    "connect": "連接錢包"
+  },
+  "Home": {
+    "title": "你好 繁體!"
+  },
+  "Settings": {
+    "title": "設定",
+    "language": "語言",
+
+    "zh-tw": "繁體中文",
+    "en": "英文"
+  }
+}

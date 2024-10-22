@@ -5,10 +5,8 @@
     "Immer",
     "lucide",
     "meshsdk",
-    "Misans",
     "Sonner",
     "tailwindcss",
     "zustand"
-  ],
-  "i18n-ally.localesPaths": ["public/locales"]
+  ]
 }
