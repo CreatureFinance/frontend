@@ -83,5 +83,6 @@
     @apply bg-background text-foreground;
 
     font-family: "Geist", "NotoSans", sans-serif;
+    scroll-behavior: smooth;
   }
 }

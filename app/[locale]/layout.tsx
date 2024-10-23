@@ -8,15 +8,17 @@ import { ReactNode } from "react";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { LocaleProps } from "@/types/locale";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/share/navbar";
 import { ZustandProvider } from "@/providers/store-provider";
 import Loading from "@/components/share/loading";
+import Scroll from "@/components/share/scroll";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-type Props = {
+interface IProps extends LocaleProps {
   children: ReactNode;
-  params: { locale: string };
-};
+}
 
 const MeshProvider = dynamic(
   () => import("@/providers/mesh-provider").then((mod) => mod.default),
@@ -37,7 +39,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params: { locale },
-}: Omit<Props, "children">) {
+}: Omit<IProps, "children">) {
   const t = await getTranslations({ locale, namespace: "LocaleLayout" });
 
   return {
@@ -48,7 +50,7 @@ export async function generateMetadata({
 export default async function LocaleLayout({
   children,
   params: { locale },
-}: Props) {
+}: IProps) {
   // Enable static rendering
   setRequestLocale(locale);
 
@@ -57,8 +59,8 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="h-full">
-      <body className="flex min-h-screen flex-col">
+    <html lang={locale}>
+      <body className="relative box-border overflow-hidden">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -69,11 +71,17 @@ export default async function LocaleLayout({
           <MeshProvider>
             <NextIntlClientProvider messages={messages}>
               <ZustandProvider>
-                <div className="flex flex-grow flex-col pt-20">
-                  <Navbar />
-                  <main className="flex-grow">{children}</main>
-                </div>
-                <Toaster richColors closeButton />
+                <TooltipProvider>
+                  <Scroll>
+                    <main>
+                      <Navbar />
+                      <section className="px-4 py-6 md:px-6 md:py-8">
+                        {children}
+                      </section>
+                    </main>
+                    <Toaster richColors offset={16} />
+                  </Scroll>
+                </TooltipProvider>
               </ZustandProvider>
             </NextIntlClientProvider>
           </MeshProvider>

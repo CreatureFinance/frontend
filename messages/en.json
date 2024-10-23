@@ -15,5 +15,10 @@
 
     "zh-tw": "Chinese (Traditional)",
     "en": "English"
+  },
+  "System": {
+    "copy-success": "Copied successfully",
+    "copy-fail": "Copy failed",
+    "whats-new-title": "What's New"
   }
 }

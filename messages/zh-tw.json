@@ -15,5 +15,10 @@
 
     "zh-tw": "繁體中文",
     "en": "英文"
+  },
+  "System": {
+    "copy-success": "複製成功",
+    "copy-fail": "複製失敗，請重試",
+    "whats-new-title": "最新消息"
   }
 }

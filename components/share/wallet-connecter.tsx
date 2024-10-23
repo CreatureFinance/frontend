@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import {
   ChevronRightIcon,
+  Copy,
   LogOut,
   Settings as SettingIcon,
   Wallet as WalletIcon,
@@ -24,32 +25,34 @@ import { useTranslations } from "next-intl";
 import ShinyButton from "../ui/shiny-button";
 import { RainbowButton } from "../ui/rainbow-button";
 import LocaleSelector from "./locale-selector";
+import { Link } from "@/i18n/routing";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { handleCopy } from "@/utils/tools";
 
-interface IProps {
-  className?: string;
-}
-
-const WalletConnecter = ({ className }: IProps) => {
+const WalletConnecter = () => {
   const t = useTranslations("Wallet");
   const { connected } = useWallet();
   const walletAddress = useStore((state) => state.wallet.walletAddress);
   const walletName = useStore((state) => state.wallet.walletName);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2">
-      <Sheet>
+      <Sheet open={isPreferencesOpen} onOpenChange={setIsPreferencesOpen}>
         <SheetTrigger asChild>
-          <ShinyButton className="px-2 py-2">
+          <ShinyButton
+            className="px-2 py-2"
+            onClick={() => setIsPreferencesOpen(true)}
+          >
             <SettingIcon />
           </ShinyButton>
         </SheetTrigger>
         <Settings />
       </Sheet>
-      <Sheet>
+      <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
         <SheetTrigger asChild>
-          <RainbowButton
-            className={`flex items-center gap-2 px-4 py-2 ${className}`}
-          >
+          <RainbowButton className="flex items-center gap-2 px-4 py-2">
             <div className="flex items-center justify-center">
               {connected ? (
                 <Avatar className="h-6 w-6 shrink-0 text-foreground">
@@ -65,7 +68,11 @@ const WalletConnecter = ({ className }: IProps) => {
             </span>
           </RainbowButton>
         </SheetTrigger>
-        {connected ? <ConnectedWalletUI /> : <DisconnectedWalletUI />}
+        {connected ? (
+          <ConnectedWalletUI setIsOpen={setIsWalletOpen} />
+        ) : (
+          <DisconnectedWalletUI setIsOpen={setIsWalletOpen} />
+        )}
       </Sheet>
     </div>
   );
@@ -100,7 +107,11 @@ const Option = ({ wallet }: { wallet: Wallet }) => {
   );
 };
 
-const DisconnectedWalletUI = () => {
+const DisconnectedWalletUI = ({
+  setIsOpen,
+}: {
+  setIsOpen: (bool: boolean) => void;
+}) => {
   const t = useTranslations("Wallet");
   const { connected } = useWallet();
   const wallets = useWalletList();
@@ -118,12 +129,17 @@ const DisconnectedWalletUI = () => {
   );
 };
 
-const ConnectedWalletUI = () => {
+const ConnectedWalletUI = ({
+  setIsOpen,
+}: {
+  setIsOpen: (bool: boolean) => void;
+}) => {
   const { wallet, disconnect, name } = useWallet();
   const walletName = name.charAt(0).toUpperCase() + name.slice(1);
   const walletAddress = useStore((state) => state.wallet.walletAddress);
   const setWalletAddress = useStore((state) => state.wallet.setWalletAddress);
   const setWalletName = useStore((state) => state.wallet.setWalletName);
+  const t = useTranslations("System");
 
   useEffect(() => {
     const fetchAddress = async () => {
@@ -138,7 +154,7 @@ const ConnectedWalletUI = () => {
     };
 
     fetchAddress();
-  }, [wallet]);
+  }, [setWalletAddress, setWalletName, wallet, walletName]);
 
   return (
     <SheetContent>
@@ -146,7 +162,7 @@ const ConnectedWalletUI = () => {
         <SheetTitle>Wallet</SheetTitle>
         <SheetDescription className="sr-only">connected</SheetDescription>
       </SheetHeader>
-      <div className="mt-8 flex flex-col gap-2">
+      <div className="mt-8 flex flex-col gap-4">
         <div className="flex items-center space-x-3">
           <Avatar>
             <AvatarImage src="https://github.com/shadcn.png" />
@@ -154,12 +170,23 @@ const ConnectedWalletUI = () => {
           </Avatar>
           <div className="min-w-0 flex-1">
             <h2>{walletName}</h2>
-            <p className="max-w-[75%] truncate text-sm text-gray-500">
-              {walletAddress}
-            </p>
+            <Tooltip delayDuration={0.1}>
+              <TooltipTrigger
+                className="flex w-full items-center"
+                onClick={() => handleCopy(walletAddress, t)}
+              >
+                <p className="max-w-[75%] truncate text-sm text-muted-foreground">
+                  {walletAddress}
+                </p>
+                <Copy className="h-4 w-4" />
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">
+                {walletAddress}
+              </TooltipContent>
+            </Tooltip>
           </div>
           <Button
-            className="ml-2 shrink-0"
+            className="shrink-0"
             onClick={disconnect}
             variant="outline"
             size="icon"
@@ -167,8 +194,17 @@ const ConnectedWalletUI = () => {
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
+        <Link href="/portfolio">
+          <Button
+            onClick={() => setIsOpen(false)}
+            variant="outline"
+            className="h-10 w-full"
+          >
+            View Portfolio
+          </Button>
+        </Link>
+        <div className="h-80 bg-red-100"></div>
       </div>
-      <div className="mt-8 h-80 bg-red-100"></div>
     </SheetContent>
   );
 };

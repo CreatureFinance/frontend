@@ -1,21 +1,17 @@
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
-import TEST_Toast from "@/components/share/toast-tester";
+import { LocaleProps } from "@/types/locale";
+import Container from "@/components/ui/container";
 
-type Props = {
-  params: { locale: string };
-};
-
-export default function Home({ params: { locale } }: Props) {
+export default function Home({ params: { locale } }: LocaleProps) {
   // Enable static rendering
   setRequestLocale(locale);
 
   const t = useTranslations("Home");
 
   return (
-    <div>
-      <TEST_Toast />
+    <Container>
       <p className="">{t("title")}</p>
-    </div>
+    </Container>
   );
 }
