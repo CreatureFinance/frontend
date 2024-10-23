@@ -4,7 +4,11 @@
   },
   "Wallet": {
     "title": "錢包",
-    "connect": "連接錢包"
+    "connect": "連接錢包",
+    "network-mainnet": "主網",
+    "network-testnet": "測試網",
+    "wrong-network": "請切換成 {value} 網路重新連接",
+    "connect-success": "連接成功"
   },
   "Home": {
     "title": "你好 繁體!"

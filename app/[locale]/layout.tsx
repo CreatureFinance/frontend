@@ -79,7 +79,7 @@ export default async function LocaleLayout({
                         {children}
                       </section>
                     </main>
-                    <Toaster richColors offset={16} />
+                    <Toaster richColors closeButton position="top-center" />
                   </Scroll>
                 </TooltipProvider>
               </ZustandProvider>

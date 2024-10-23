@@ -3,11 +3,13 @@ import { ImmerStateCreator } from "./index";
 type WalletState = {
   walletName: string;
   walletAddress: string;
+  isConnecting: boolean;
 };
 
 type WalletActions = {
   setWalletName: (name: string) => void;
   setWalletAddress: (address: string) => void;
+  setIsConnecting: (bool: boolean) => void;
 };
 
 export interface WalletStore {
@@ -17,6 +19,7 @@ export interface WalletStore {
 const defaultInitState: WalletState = {
   walletName: "",
   walletAddress: "",
+  isConnecting: false,
 };
 
 export const createWalletStore: ImmerStateCreator<WalletStore> = (set) => ({
@@ -30,6 +33,11 @@ export const createWalletStore: ImmerStateCreator<WalletStore> = (set) => ({
     setWalletName: (name: string) => {
       set((state) => {
         state.wallet.walletName = name;
+      });
+    },
+    setIsConnecting: (bool: boolean) => {
+      set((state) => {
+        state.wallet.isConnecting = bool;
       });
     },
   },

@@ -8,7 +8,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Wallet } from "@meshsdk/common";
-import { useWallet, useWalletList } from "@meshsdk/react";
+import { useNetwork, useWallet, useWalletList } from "@meshsdk/react";
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/ui/loader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,15 +27,50 @@ import { RainbowButton } from "../ui/rainbow-button";
 import LocaleSelector from "./locale-selector";
 import { Link } from "@/i18n/routing";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { handleCopy } from "@/utils/tools";
+import { getNetworks, handleCopy } from "@/utils/tools";
+import { WalletType } from "@/types/wallet";
+import { toast } from "sonner";
 
 const WalletConnecter = () => {
   const t = useTranslations("Wallet");
-  const { connected } = useWallet();
+  const { connected, disconnect } = useWallet();
   const walletAddress = useStore((state) => state.wallet.walletAddress);
   const walletName = useStore((state) => state.wallet.walletName);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const isConnecting = useStore((state) => state.wallet.isConnecting);
+  const setIsConnecting = useStore((state) => state.wallet.setIsConnecting);
+  const accountNetwork = useNetwork();
+  const envNetwork = process.env.NEXT_PUBLIC_CARDANO_NETWORK;
+  const network =
+    accountNetwork !== undefined
+      ? getNetworks(accountNetwork as WalletType)
+      : null;
+
+  useEffect(() => {
+    if (!isConnecting || !network) return;
+
+    if (connected && network.current === envNetwork) {
+      toast.success(t("connect-success"));
+      setIsConnecting(false);
+    } else if (connected && network.current !== envNetwork) {
+      disconnect();
+      toast.error(
+        t("wrong-network", {
+          value: t(`network-${network.opposite}`),
+        }),
+      );
+      setIsConnecting(false);
+    }
+  }, [
+    connected,
+    disconnect,
+    envNetwork,
+    isConnecting,
+    network,
+    setIsConnecting,
+    t,
+  ]);
 
   return (
     <div className="flex items-center gap-2">
@@ -83,12 +118,12 @@ export default WalletConnecter;
 const Option = ({ wallet }: { wallet: Wallet }) => {
   const { id, name, icon } = wallet;
   const { connect, connecting } = useWallet();
-  const [isConnecting, setIsConnecting] = useState(false);
+  const isConnecting = useStore((state) => state.wallet.isConnecting);
+  const setIsConnecting = useStore((state) => state.wallet.setIsConnecting);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     await connect(id);
-    setIsConnecting(false);
   };
 
   return (

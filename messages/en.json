@@ -4,7 +4,11 @@
   },
   "Wallet": {
     "title": "Wallet",
-    "connect": "Connect Wallet"
+    "connect": "Connect Wallet",
+    "network-mainnet": "Main Network",
+    "network-testnet": "Test Network",
+    "wrong-network": "Please switch to {value} network and reconnect",
+    "connect-success": "Connection successful"
   },
   "Home": {
     "title": "Hello world!"
