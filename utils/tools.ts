@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import copy from "copy-to-clipboard";
 import { toast } from "sonner";
-import { WalletType } from "@/types/wallet";
+import { WalletType } from "@/types/enums";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

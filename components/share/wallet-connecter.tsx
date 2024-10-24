@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -28,20 +28,26 @@ import LocaleSelector from "./locale-selector";
 import { Link } from "@/i18n/routing";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { getNetworks, handleCopy } from "@/utils/tools";
-import { WalletType } from "@/types/wallet";
+import { LocalStorageKey, WalletType } from "@/types/enums";
 import { toast } from "sonner";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 interface WalletUIProps {
   setIsOpen: (bool: boolean) => void;
+  disconnect: () => void;
 }
 
 const WalletConnecter = () => {
   const t = useTranslations("Wallet");
-  const { connected, disconnect } = useWallet();
-  const walletAddress = useStore((state) => state.wallet.walletAddress);
-  const walletName = useStore((state) => state.wallet.walletName);
+  const { name, connect, connected, disconnect } = useWallet();
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [walletProvider, setWalletProvider] = useLocalStorage<string | null>(
+    LocalStorageKey.WALLET_PROVIDER,
+    null,
+  );
+  const walletName = useStore((state) => state.wallet.walletName);
+  const walletAddress = useStore((state) => state.wallet.walletAddress);
   const isConnecting = useStore((state) => state.wallet.isConnecting);
   const setIsConnecting = useStore((state) => state.wallet.setIsConnecting);
   const accountNetwork = useNetwork();
@@ -51,34 +57,61 @@ const WalletConnecter = () => {
       ? getNetworks(accountNetwork as WalletType)
       : null;
 
+  const disconnectWallet = useCallback(() => {
+    disconnect();
+    setWalletProvider(null);
+    setIsConnecting(false);
+  }, [disconnect, setWalletProvider, setIsConnecting]);
+
   useEffect(() => {
     if (!envNetwork) {
       toast.warning("Please set your network in .env file");
       return;
     }
+
     if (!isConnecting || !network) return;
 
-    if (connected && network.current === envNetwork) {
-      toast.success(t("connect-success"));
-      setIsConnecting(false);
-    } else if (connected && network.current !== envNetwork) {
-      disconnect();
-      toast.error(
-        t("wrong-network", {
-          value: t(`network-${network.opposite}`),
-        }),
-      );
-      setIsConnecting(false);
-    }
+    const connectWallet = (): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        if (network.current === envNetwork) {
+          setWalletProvider(name);
+          setIsConnecting(false);
+          resolve(t("connect-success"));
+        } else if (network.current !== envNetwork) {
+          disconnectWallet();
+          reject(
+            new Error(
+              t("wrong-network", {
+                value: t(`network-${network.opposite}`),
+              }),
+            ),
+          );
+        }
+      });
+    };
+
+    toast.promise(connectWallet(), {
+      loading: t("connecting"),
+      success: (message: string) => message,
+      error: (error: Error) => error.message,
+    });
   }, [
-    connected,
-    disconnect,
+    disconnectWallet,
     envNetwork,
     isConnecting,
+    name,
     network,
     setIsConnecting,
+    setWalletProvider,
     t,
   ]);
+
+  useEffect(() => {
+    if (walletProvider) {
+      setIsConnecting(true);
+      connect(walletProvider);
+    }
+  }, [connect, setIsConnecting, walletProvider]);
 
   return (
     <div className="flex items-center gap-2">
@@ -95,7 +128,10 @@ const WalletConnecter = () => {
       </Sheet>
       <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
         <SheetTrigger asChild>
-          <RainbowButton className="flex items-center gap-2 px-4 py-2">
+          <RainbowButton
+            disabled={isConnecting}
+            className="flex items-center gap-2 px-4 py-2"
+          >
             <div className="flex items-center justify-center">
               {connected ? (
                 <Avatar className="h-6 w-6 shrink-0 text-foreground">
@@ -111,7 +147,7 @@ const WalletConnecter = () => {
             </span>
           </RainbowButton>
         </SheetTrigger>
-        <WalletUI setIsOpen={setIsWalletOpen} />
+        <WalletUI disconnect={disconnectWallet} setIsOpen={setIsWalletOpen} />
       </Sheet>
     </div>
   );
@@ -146,7 +182,7 @@ const Option = ({ wallet }: { wallet: Wallet }) => {
   );
 };
 
-const DisconnectedWalletUI = ({ setIsOpen }: WalletUIProps) => {
+const DisconnectedWalletUI = () => {
   const t = useTranslations("Wallet");
   const { connected } = useWallet();
   const wallets = useWalletList();
@@ -164,8 +200,8 @@ const DisconnectedWalletUI = ({ setIsOpen }: WalletUIProps) => {
   );
 };
 
-const ConnectedWalletUI = ({ setIsOpen }: WalletUIProps) => {
-  const { wallet, disconnect, name } = useWallet();
+const ConnectedWalletUI = ({ setIsOpen, disconnect }: WalletUIProps) => {
+  const { wallet, name } = useWallet();
   const walletName = name.charAt(0).toUpperCase() + name.slice(1);
   const walletAddress = useStore((state) => state.wallet.walletAddress);
   const setWalletAddress = useStore((state) => state.wallet.setWalletAddress);
@@ -257,11 +293,11 @@ const Settings = () => {
   );
 };
 
-const WalletUI = ({ setIsOpen }: WalletUIProps) => {
+const WalletUI = (props: WalletUIProps) => {
   const { connected } = useWallet();
   const isConnecting = useStore((state) => state.wallet.isConnecting);
 
-  if (isConnecting) return <DisconnectedWalletUI setIsOpen={setIsOpen} />;
-  if (connected) return <ConnectedWalletUI setIsOpen={setIsOpen} />;
-  return <DisconnectedWalletUI setIsOpen={setIsOpen} />;
+  if (isConnecting) return <DisconnectedWalletUI />;
+  if (connected) return <ConnectedWalletUI {...props} />;
+  return <DisconnectedWalletUI />;
 };
