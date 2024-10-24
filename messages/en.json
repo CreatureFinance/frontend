@@ -5,6 +5,7 @@
   "Wallet": {
     "title": "Wallet",
     "connect": "Connect Wallet",
+    "connecting": "Connecting wallet...",
     "network-mainnet": "Main Network",
     "network-testnet": "Test Network",
     "wrong-network": "Please switch to {value} network and reconnect",

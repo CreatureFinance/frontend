@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, use, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowUp, CircleAlert } from "lucide-react";
 import BlurFade from "../ui/blur-fade";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 interface IProps {
   children: ReactNode;
@@ -21,7 +21,6 @@ interface IProps {
 const Scroll = ({ children }: IProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const locale = useLocale();
 
   const scrollToTop = () => {
     if (scrollContainerRef.current) {

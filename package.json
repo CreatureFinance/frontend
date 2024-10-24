@@ -58,6 +58,9 @@
     "typescript": "^5"
   },
   "trustedDependencies": [
-    "chacha-native"
+    "chacha-native",
+    "cpu-features",
+    "sharp",
+    "ssh2"
   ]
 }

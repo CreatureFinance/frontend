@@ -29,3 +29,16 @@ export function getNetworks(network: WalletType): {
   const opposite = network === WalletType.MAINNET ? "testnet" : "mainnet";
   return { current, opposite };
 }
+
+export function getErrorInfo(error: Error): string {
+  try {
+    const match = error.message.match(/\{.*\}/);
+    if (match) {
+      const errorObj = JSON.parse(match[0]);
+      return errorObj.info || "未知錯誤";
+    }
+    return error.message;
+  } catch {
+    return error.message || "未知錯誤";
+  }
+}

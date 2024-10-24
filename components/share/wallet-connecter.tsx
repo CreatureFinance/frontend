@@ -27,30 +27,29 @@ import { RainbowButton } from "../ui/rainbow-button";
 import LocaleSelector from "./locale-selector";
 import { Link } from "@/i18n/routing";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { getNetworks, handleCopy } from "@/utils/tools";
+import { getErrorInfo, getNetworks, handleCopy } from "@/utils/tools";
 import { LocalStorageKey, WalletType } from "@/types/enums";
 import { toast } from "sonner";
 import { useLocalStorage } from "@uidotdev/usehooks";
 
 interface WalletUIProps {
   setIsOpen: (bool: boolean) => void;
-  disconnect: () => void;
+  disconnect?: () => void;
 }
 
 const WalletConnecter = () => {
   const t = useTranslations("Wallet");
-  const { name, connect, connected, disconnect } = useWallet();
+  const { wallet, name, error, connect, disconnect } = useWallet();
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [walletProvider, setWalletProvider] = useLocalStorage<string | null>(
     LocalStorageKey.WALLET_PROVIDER,
     null,
   );
-  const walletName = useStore((state) => state.wallet.walletName);
-  const walletAddress = useStore((state) => state.wallet.walletAddress);
   const isConnecting = useStore((state) => state.wallet.isConnecting);
   const setIsConnecting = useStore((state) => state.wallet.setIsConnecting);
-  const accountNetwork = useNetwork();
+  const setConnectingId = useStore((state) => state.wallet.setConnectingId);
+  const [accountNetwork, setAccountNetwork] = useState<WalletType>();
   const envNetwork = process.env.NEXT_PUBLIC_CARDANO_NETWORK;
   const network =
     accountNetwork !== undefined
@@ -61,7 +60,19 @@ const WalletConnecter = () => {
     disconnect();
     setWalletProvider(null);
     setIsConnecting(false);
-  }, [disconnect, setWalletProvider, setIsConnecting]);
+    setConnectingId("");
+  }, [disconnect, setWalletProvider, setIsConnecting, setConnectingId]);
+
+  useEffect(() => {
+    if (error) {
+      const message = getErrorInfo(error as Error);
+      toast.error(message);
+      setIsConnecting(false);
+      setConnectingId("");
+      setWalletProvider(null);
+      return;
+    }
+  }, [error, setConnectingId, setIsConnecting, setWalletProvider]);
 
   useEffect(() => {
     if (!envNetwork) {
@@ -71,7 +82,10 @@ const WalletConnecter = () => {
 
     if (!isConnecting || !network) return;
 
-    const connectWallet = (): Promise<string> => {
+    const connectWallet = async (): Promise<string> => {
+      // 等待一小段時間，讓 network 更新，確保資料正確
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       return new Promise((resolve, reject) => {
         if (network.current === envNetwork) {
           setWalletProvider(name);
@@ -101,17 +115,34 @@ const WalletConnecter = () => {
     isConnecting,
     name,
     network,
+    setConnectingId,
     setIsConnecting,
     setWalletProvider,
     t,
   ]);
 
   useEffect(() => {
-    if (walletProvider) {
+    // TODO 當 useNetworkId 修好的時候記得換成 hooks
+    const fetchNetworkId = async () => {
+      try {
+        const networkId = await wallet.getNetworkId();
+        setAccountNetwork(networkId);
+      } catch (error) {
+        setAccountNetwork(undefined);
+      }
+    };
+
+    if (wallet) {
+      fetchNetworkId();
+    }
+  }, [wallet]);
+
+  useEffect(() => {
+    if (walletProvider && !isConnecting) {
       setIsConnecting(true);
       connect(walletProvider);
     }
-  }, [connect, setIsConnecting, walletProvider]);
+  }, []);
 
   return (
     <div className="flex items-center gap-2">
@@ -128,24 +159,7 @@ const WalletConnecter = () => {
       </Sheet>
       <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
         <SheetTrigger asChild>
-          <RainbowButton
-            disabled={isConnecting}
-            className="flex items-center gap-2 px-4 py-2"
-          >
-            <div className="flex items-center justify-center">
-              {connected ? (
-                <Avatar className="h-6 w-6 shrink-0 text-foreground">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>{walletName.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-              ) : (
-                <WalletIcon className="h-5 w-5 shrink-0" />
-              )}
-            </div>
-            <span className="max-w-32 truncate">
-              {connected ? walletAddress : t("connect")}
-            </span>
-          </RainbowButton>
+          <WalletButton setIsOpen={setIsWalletOpen} />
         </SheetTrigger>
         <WalletUI disconnect={disconnectWallet} setIsOpen={setIsWalletOpen} />
       </Sheet>
@@ -159,10 +173,13 @@ const Option = ({ wallet }: { wallet: Wallet }) => {
   const { id, name, icon } = wallet;
   const { connect, connecting } = useWallet();
   const isConnecting = useStore((state) => state.wallet.isConnecting);
+  const connectingId = useStore((state) => state.wallet.connectingId);
   const setIsConnecting = useStore((state) => state.wallet.setIsConnecting);
+  const setConnectingId = useStore((state) => state.wallet.setConnectingId);
 
   const handleConnect = async () => {
     setIsConnecting(true);
+    setConnectingId(id);
     await connect(id);
   };
 
@@ -177,15 +194,17 @@ const Option = ({ wallet }: { wallet: Wallet }) => {
         <Image src={icon} alt={id} width={28} height={28} />
         <span>{name.charAt(0).toUpperCase() + name.slice(1)}</span>
       </div>
-      {isConnecting ? <Loader /> : <ChevronRightIcon />}
+      {isConnecting && id === connectingId ? <Loader /> : <ChevronRightIcon />}
     </Button>
   );
 };
 
 const DisconnectedWalletUI = () => {
   const t = useTranslations("Wallet");
-  const { connected } = useWallet();
   const wallets = useWalletList();
+  const { connected } = useWallet();
+  const isConnecting = useStore((state) => state.wallet.isConnecting);
+
   return (
     <SheetContent>
       <SheetHeader>
@@ -193,7 +212,7 @@ const DisconnectedWalletUI = () => {
         <SheetDescription className="sr-only">!connected</SheetDescription>
       </SheetHeader>
       <div className="mt-8 flex flex-col gap-2">
-        {!connected &&
+        {(!connected || isConnecting) &&
           wallets.map((item) => <Option key={item.id} wallet={item} />)}
       </div>
     </SheetContent>
@@ -204,8 +223,8 @@ const ConnectedWalletUI = ({ setIsOpen, disconnect }: WalletUIProps) => {
   const { wallet, name } = useWallet();
   const walletName = name.charAt(0).toUpperCase() + name.slice(1);
   const walletAddress = useStore((state) => state.wallet.walletAddress);
-  const setWalletAddress = useStore((state) => state.wallet.setWalletAddress);
   const setWalletName = useStore((state) => state.wallet.setWalletName);
+  const setWalletAddress = useStore((state) => state.wallet.setWalletAddress);
   const t = useTranslations("System");
 
   useEffect(() => {
@@ -235,7 +254,7 @@ const ConnectedWalletUI = ({ setIsOpen, disconnect }: WalletUIProps) => {
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback>{walletName.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <h2>{walletName}</h2>
             <Tooltip delayDuration={0.1}>
               <TooltipTrigger
@@ -247,7 +266,7 @@ const ConnectedWalletUI = ({ setIsOpen, disconnect }: WalletUIProps) => {
                 </p>
                 <Copy className="h-4 w-4" />
               </TooltipTrigger>
-              <TooltipContent className="text-xs">
+              <TooltipContent className="h-auto max-w-[250px] whitespace-pre-wrap break-all">
                 {walletAddress}
               </TooltipContent>
             </Tooltip>
@@ -300,4 +319,44 @@ const WalletUI = (props: WalletUIProps) => {
   if (isConnecting) return <DisconnectedWalletUI />;
   if (connected) return <ConnectedWalletUI {...props} />;
   return <DisconnectedWalletUI />;
+};
+
+const WalletButton = ({ setIsOpen }: WalletUIProps) => {
+  const t = useTranslations("Wallet");
+  const { connected } = useWallet();
+  const isConnecting = useStore((state) => state.wallet.isConnecting);
+  const walletName = useStore((state) => state.wallet.walletName);
+  const walletAddress = useStore((state) => state.wallet.walletAddress);
+
+  if (isConnecting) {
+    return (
+      <RainbowButton disabled className="flex items-center gap-2 px-4 py-2">
+        <div className="flex items-center justify-center gap-2">
+          <Loader className="h-5 w-5 animate-spin text-background" />
+        </div>
+        <span className="max-w-32 truncate">{t("connecting")}</span>
+      </RainbowButton>
+    );
+  }
+
+  return (
+    <RainbowButton
+      onClick={() => setIsOpen(true)}
+      className="flex items-center gap-2 px-4 py-2"
+    >
+      <div className="flex items-center justify-center">
+        {connected ? (
+          <Avatar className="h-6 w-6 shrink-0 text-foreground">
+            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarFallback>{walletName.slice(0, 2)}</AvatarFallback>
+          </Avatar>
+        ) : (
+          <WalletIcon className="h-5 w-5 shrink-0" />
+        )}
+      </div>
+      <span className="max-w-32 truncate">
+        {connected ? walletAddress : t("connect")}
+      </span>
+    </RainbowButton>
+  );
 };
