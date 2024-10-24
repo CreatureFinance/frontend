@@ -31,6 +31,10 @@ import { getNetworks, handleCopy } from "@/utils/tools";
 import { WalletType } from "@/types/wallet";
 import { toast } from "sonner";
 
+interface WalletUIProps {
+  setIsOpen: (bool: boolean) => void;
+}
+
 const WalletConnecter = () => {
   const t = useTranslations("Wallet");
   const { connected, disconnect } = useWallet();
@@ -48,6 +52,10 @@ const WalletConnecter = () => {
       : null;
 
   useEffect(() => {
+    if (!envNetwork) {
+      toast.warning("Please set your network in .env file");
+      return;
+    }
     if (!isConnecting || !network) return;
 
     if (connected && network.current === envNetwork) {
@@ -103,11 +111,7 @@ const WalletConnecter = () => {
             </span>
           </RainbowButton>
         </SheetTrigger>
-        {connected ? (
-          <ConnectedWalletUI setIsOpen={setIsWalletOpen} />
-        ) : (
-          <DisconnectedWalletUI setIsOpen={setIsWalletOpen} />
-        )}
+        <WalletUI setIsOpen={setIsWalletOpen} />
       </Sheet>
     </div>
   );
@@ -142,11 +146,7 @@ const Option = ({ wallet }: { wallet: Wallet }) => {
   );
 };
 
-const DisconnectedWalletUI = ({
-  setIsOpen,
-}: {
-  setIsOpen: (bool: boolean) => void;
-}) => {
+const DisconnectedWalletUI = ({ setIsOpen }: WalletUIProps) => {
   const t = useTranslations("Wallet");
   const { connected } = useWallet();
   const wallets = useWalletList();
@@ -164,11 +164,7 @@ const DisconnectedWalletUI = ({
   );
 };
 
-const ConnectedWalletUI = ({
-  setIsOpen,
-}: {
-  setIsOpen: (bool: boolean) => void;
-}) => {
+const ConnectedWalletUI = ({ setIsOpen }: WalletUIProps) => {
   const { wallet, disconnect, name } = useWallet();
   const walletName = name.charAt(0).toUpperCase() + name.slice(1);
   const walletAddress = useStore((state) => state.wallet.walletAddress);
@@ -259,4 +255,13 @@ const Settings = () => {
       </div>
     </SheetContent>
   );
+};
+
+const WalletUI = ({ setIsOpen }: WalletUIProps) => {
+  const { connected } = useWallet();
+  const isConnecting = useStore((state) => state.wallet.isConnecting);
+
+  if (isConnecting) return <DisconnectedWalletUI setIsOpen={setIsOpen} />;
+  if (connected) return <ConnectedWalletUI setIsOpen={setIsOpen} />;
+  return <DisconnectedWalletUI setIsOpen={setIsOpen} />;
 };
